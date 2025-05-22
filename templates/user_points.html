@@ -452,7 +452,7 @@
                 }
 
                 // Verify user
-                const userResponse = await fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+                const userResponse = await fetch(`https://app-recomendations.onrender.com/api/users/${userId}/`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -468,7 +468,7 @@
                 }
 
                 // Fetch tasks
-                const tasksResponse = await fetch('http://127.0.0.1:8000/api/tasks/', {
+                const tasksResponse = await fetch('https://app-recomendations.onrender.com/api/tasks/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
