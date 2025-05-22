@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-)pe+#&49!4$gfi-$b9k0=%)6jwl!nd10r@-sgw!%3s7-3e#v=&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://app-recomendations.onrender.com','http://127.0.0.1:8000/']
+ALLOWED_HOSTS = ['app-recomendations.onrender.com','http://127.0.0.1:8000/']
 
 
 # Application definition
@@ -129,6 +129,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 # Default primary key field type
