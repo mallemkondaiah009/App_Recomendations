@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 12px 20px;
+            margin: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+        .sidebar a.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        .sidebar a:hover .icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+        .sidebar a.active .icon {
+            color: #ffffff;
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 10px 20px;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1f2937;
+            margin: 0;
+        }
+        .content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 20px;
+        }
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 20px;
+            padding: 10px;
+        }
+        .task-icon {
+            cursor: pointer;
+            text-align: center;
+        }
+        .task-icon img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            border-radius: 12px;
+            border: 1px solid #d3e0f3;
+            transition: transform 0.2s;
+        }
+        .task-icon img:hover {
+            transform: scale(1.1);
+        }
+        .task-icon span {
+            display: block;
+            font-size: 12px;
+            color: #1f2937;
+            margin-top: 8px;
+        }
+        .no-tasks {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 20px;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .modal-content img {
+            max-width: 100%;
+            max-height: 50vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ffffff;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .modal-details p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #1f2937;
+        }
+        .modal-details p strong {
+            color: #3b82f6;
+        }
+        /* Icon styles from home.html */
+        .home-icon::before,
+        .home-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .home-icon::before {
+            width: 16px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-bottom: none;
+            top: 3px;
+            left: 1px;
+            border-radius: 3px 3px 0 0;
+        }
+        .home-icon::after {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 8px solid currentColor;
+            top: -2px;
+            left: 0px;
+        }
+        .profile-icon::before,
+        .profile-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .profile-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 0;
+            left: 4px;
+        }
+        .profile-icon::after {
+            width: 16px;
+            height: 8px;
+            border: 2px solid currentColor;
+            border-radius: 6px 6px 10px 10px;
+            border-top: none;
+            top: 12px;
+            left: 1px;
+        }
+        .points-icon::before,
+        .points-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .points-icon::before {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+        }
+        .points-icon::after {
+            content: '★';
+            font-size: 10px;
+            top: 4px;
+            left: 5px;
+        }
+        .task-icon-sidebar::before,
+        .task-icon-sidebar::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .task-icon-sidebar::before {
+            width: 16px;
+            height: 18px;
+            border: 2px solid currentColor;
+            border-radius: 3px;
+            top: 0;
+            left: 1px;
+        }
+        .task-icon-sidebar::after {
+            content: '✓';
+            font-size: 12px;
+            top: 2px;
+            left: 4px;
+        }
+        .logout-icon::before,
+        .logout-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .logout-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 3px;
+            left: 0;
+        }
+        .logout-icon::after {
+            width: 8px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 12px;
+            box-shadow: 0 -3px 0 0 currentColor, 0 3px 0 0 currentColor;
+        }
+        .admin-icon::before,
+        .admin-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .admin-icon::before {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+        }
+        .admin-icon::after {
+            width: 10px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 4px;
+            box-shadow: 3px 3px 0 0 currentColor, -3px 3px 0 0 currentColor, 3px -3px 0 0 currentColor, -3px -3px 0 0 currentColor;
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/">
+            <div class="icon home-icon"></div>
+            Home
+        </a>
+        
+        <a href="/user_tasks/" class="active">
+            <div class="icon task-icon-sidebar"></div>
+            Task
+        </a>
+        <a href="/user_points/">
+            <div class="icon points-icon"></div>
+            Points
+        </a>
+        <a href="/profile/">
+            <div class="icon profile-icon"></div>
+            Profile
+        </a>
+        <a href="/logout/" id="logout-link">
+            <div class="icon logout-icon"></div>
+            Logout
+        </a>
+        <a href="/custom_admin/" id="admin-link">
+            <div class="icon admin-icon"></div>
+            Admin
+        </a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1 id="greeting">Welcome</h1>
+        </div>
+        <div class="content">
+            <div id="error" class="error"></div>
+            <div id="loading" class="loading">Loading...</div>
+            <div id="tasks" class="tasks-grid"></div>
+        </div>
+    </div>
+    <!-- Modal for Task Details -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">×</button>
+            <img id="modal-image" src="" alt="Task Screenshot">
+            <div class="modal-details" id="modal-details"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const tasksDiv = document.getElementById('tasks');
+            const greetingDiv = document.getElementById('greeting');
+            const logoutLink = document.getElementById('logout-link');
+            const modal = document.getElementById('task-modal');
+            const modalImage = document.getElementById('modal-image');
+            const modalDetails = document.getElementById('modal-details');
+            const modalClose = document.getElementById('modal-close');
+
+            // Close modal on button click
+            modalClose.addEventListener('click', () => {
+                modal.classList.remove('show');
+            });
+
+            // Close modal on click outside content
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // Close modal on Escape key press
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('show')) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // Clear local storage on logout
+            logoutLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                window.location.href = logoutLink.href;
+            });
+
+            // Update greeting with username
+            const username = localStorage.getItem('username');
+            greetingDiv.textContent = username 
+                ? `Welcome back, ${username}! Explore your completed tasks along with their details` 
+                : 'Welcome! Explore your completed tasks along with their details';
+
+            try {
+                const userId = localStorage.getItem('user_id');
+                if (!userId) {
+                    errorDiv.textContent = 'No user ID found in local storage';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                if (!username) {
+                    errorDiv.textContent = 'No username found in local storage';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                // Verify user
+                const userResponse = await fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!userResponse.ok) {
+                    errorDiv.textContent = 'User not found or invalid';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                // Fetch tasks
+                const tasksResponse = await fetch('http://127.0.0.1:8000/api/tasks/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!tasksResponse.ok) {
+                    errorDiv.textContent = 'Failed to fetch tasks';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                const tasks = await tasksResponse.json();
+                loadingDiv.style.display = 'none';
+
+                // Filter tasks by username
+                const userTasks = tasks.filter(task => task.username === username);
+
+                if (userTasks.length === 0) {
+                    tasksDiv.innerHTML = '<p class="no-tasks">No tasks found for this user.</p>';
+                    return;
+                }
+
+                // Display tasks as icons
+                userTasks.forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'task-icon';
+                    taskDiv.innerHTML = `
+                        <img src="${task.app_image || 'https://via.placeholder.com/64?text=📋'}" alt="${task.app_name || 'Unknown App'}">
+                        <span>${task.app_name || 'Unknown App'}</span>
+                    `;
+                    taskDiv.addEventListener('click', () => {
+                        // Populate modal with task details
+                        modalImage.src = task.app_screenshot || 'https://via.placeholder.com/64?text=📋';
+                        modalDetails.innerHTML = `
+                            <p><strong>Username:</strong> ${task.username || 'N/A'}</p>
+                            <p><strong>App Name:</strong> ${task.app_name || 'N/A'}</p>
+                            <p><strong>Points:</strong> ${task.points || 0}</p>
+                            <p><strong>Date:</strong> ${task.date ? new Date(task.date).toLocaleDateString() : 'N/A'}</p>
+                        `;
+                        modal.classList.add('show');
+                    });
+                    tasksDiv.appendChild(taskDiv);
+                });
+
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred: ' + error.message;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .submit-button.loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        .submit-button.loading span {
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+        <form id="loginForm" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" name="email" required
+                       class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required
+                       class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="submit-button w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span>Login</span>
+            </button>
+        </form>
+        <p id="error" class="text-red-500 text-sm mt-4 hidden"></p>
+        <p class="mt-4 text-center text-sm">
+            Don't have an account? <a href="/register/" class="text-blue-600 hover:underline">Register</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const errorElement = document.getElementById('error');
+            const submitButton = document.querySelector('.submit-button');
+            errorElement.classList.add('hidden');
+            submitButton.classList.add('loading');
+
+            const formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const data = await response.json();
+                console.log('Login API response:', data);
+
+                if (response.ok && data.status === 'success' && data.data) {
+                    const username = data.data.username || 'N/A';
+                    const email = data.data.email || 'N/A';
+                    const userId = data.data.id || 'N/A';
+
+                    if (username === 'N/A' || email === 'N/A' || userId === 'N/A') {
+                        console.warn('Incomplete user data in API response:', data.data);
+                        errorElement.textContent = 'Login successful, but user data is incomplete. Please contact support.';
+                        errorElement.classList.remove('hidden');
+                    } else {
+                        localStorage.setItem('username', username);
+                        localStorage.setItem('email', email);
+                        localStorage.setItem('user_id', userId);
+                        console.log('Stored in localStorage:', { username, email, userId });
+                        window.location.href = '/';
+                    }
+                } else {
+                    console.error('Login error:', data);
+                    errorElement.textContent = data.detail || data.message || 'Login failed';
+                    errorElement.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login Error:', error);
+                errorElement.textContent = 'An error occurred. Please try again.';
+                errorElement.classList.remove('hidden');
+            } finally {
+                submitButton.classList.remove('loading');
+            }
+        });
+    </script>
+</body>
+</html>

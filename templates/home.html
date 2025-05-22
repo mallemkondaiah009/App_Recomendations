@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App Submissions Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 12px 20px;
+            margin: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+        .sidebar a.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        .sidebar a:hover .icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+        .sidebar a.active .icon {
+            color: #ffffff;
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            margin-left: 220px;
+        }
+        .header {
+            padding: 10px 20px;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1f2937;
+            margin: 0;
+        }
+        .content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+        .login-message {
+            background: #eff6ff;
+            color: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            display: none;
+            border: 1px solid #bfdbfe;
+        }
+        .login-message a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .login-message a:hover {
+            text-decoration: underline;
+        }
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 20px;
+        }
+        .submissions-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .submission {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #d3e0f3;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .submission-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .submission-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .submission img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+        }
+        .submission-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .submission-details h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f2937;
+            margin: 0;
+        }
+        .submission-details a {
+            font-size: 12px;
+            color: #3b82f6;
+            text-decoration: none;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+        .submission-details a:hover {
+            text-decoration: underline;
+        }
+        .submission-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .submission-right span {
+            background: #d1fae5;
+            color: #10b981;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .submission-details-dropdown {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #1f2937;
+        }
+        .submission-details-dropdown.show {
+            display: block;
+        }
+        .submission-details-dropdown p {
+            margin: 8px 0;
+        }
+        .submission-details-dropdown a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .submission-details-dropdown a:hover {
+            text-decoration: underline;
+        }
+        .screenshot-upload {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .upload-container {
+            text-align: center;
+            padding: 16px;
+            border: 2px solid #d3e0f3;
+            border-radius: 8px;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: border-color 0.3s ease;
+        }
+        .upload-container.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .upload-image {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        .upload-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        .upload-button {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+            border: none;
+        }
+        .upload-button:hover {
+            background: #2563eb;
+        }
+        .upload-button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+        .screenshot-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .screenshot-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #d3e0f3;
+        }
+        .delete-button {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1;
+        }
+        .delete-button:hover {
+            background: #b91c1c;
+        }
+        .screenshot-error {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+            text-align: center;
+        }
+        .screenshots-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: center;
+        }
+        .no-submissions {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 20px;
+        }
+
+        /* Icon styles */
+        .home-icon::before,
+        .home-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .home-icon::before {
+            width: 16px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-bottom: none;
+            top: 3px;
+            left: 1px;
+            border-radius: 3px 3px 0 0;
+        }
+        .home-icon::after {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 8px solid currentColor;
+            top: -2px;
+            left: 0px;
+        }
+
+        .profile-icon::before,
+        .profile-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .profile-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 0;
+            left: 4px;
+        }
+        .profile-icon::after {
+            width: 16px;
+            height: 8px;
+            border: 2px solid currentColor;
+            border-radius: 6px 6px 10px 10px;
+            border-top: none;
+            top: 12px;
+            left: 1px;
+        }
+
+        .points-icon::before,
+        .points-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .points-icon::before {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+        }
+        .points-icon::after {
+            content: '★';
+            font-size: 10px;
+            top: 4px;
+            left: 5px;
+        }
+
+        .task-icon::before,
+        .task-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .task-icon::before {
+            width: 16px;
+            height: 18px;
+            border: 2px solid currentColor;
+            border-radius: 3px;
+            top: 0;
+            left: 1px;
+        }
+        .task-icon::after {
+            content: '✓';
+            font-size: 12px;
+            top: 2px;
+            left: 4px;
+        }
+
+        .logout-icon::before,
+        .logout-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .logout-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 3px;
+            left: 0;
+        }
+        .logout-icon::after {
+            width: 8px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 12px;
+            box-shadow: 0 -3px 0 0 currentColor, 0 3px 0 0 currentColor;
+        }
+
+        .admin-icon::before,
+        .admin-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .admin-icon::before {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+        }
+        .admin-icon::after {
+            width: 10px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 4px;
+            box-shadow: 3px 3px 0 0 currentColor, -3px 3px 0 0 currentColor, 3px -3px 0 0 currentColor, -3px -3px 0 0 currentColor;
+            transform: rotate(45deg);
+        }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+        <a href="/" class="active">
+            <div class="icon home-icon"></div>
+            Home
+        </a>
+        <a href="/user_points/">
+            <div class="icon points-icon"></div>
+            Points
+        </a>
+        <a href="/user_tasks/">
+            <div class="icon task-icon"></div>
+            Task
+        </a>
+         <a href="/profile/">
+            <div class="icon profile-icon"></div>
+            Profile
+        </a>
+        <a href="/logout/" id="logout-link">
+            <div class="icon logout-icon"></div>
+            Logout
+        </a>
+        <a href="/custom_admin/" id="admin-link">
+            <div class="icon admin-icon"></div>
+            Admin
+        </a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1 id="greeting">Hello</h1>
+        </div>
+        <div class="content">
+            <div id="login-message" class="login-message">
+                <p>You are not logged in. Please <a href="/login/">log in</a> to access The Site</p>
+            </div>
+            <div id="error" class="error"></div>
+            <div id="loading" class="loading">Loading...</div>
+            <div id="submissions" class="submissions-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Utility function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const submissionsDiv = document.getElementById('submissions');
+            const greetingDiv = document.getElementById('greeting');
+            const logoutLink = document.getElementById('logout-link');
+            const loginMessageDiv = document.getElementById('login-message');
+
+            // Add event listener to clear local storage on logout
+            logoutLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                localStorage.removeItem('email');
+                window.location.href = logoutLink.href;
+            });
+
+            // Check if user_id exists in local storage
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                loginMessageDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+                submissionsDiv.style.display = 'none';
+                greetingDiv.textContent = 'Hello';
+                return;
+            }
+
+            // Get username from local storage and update greeting
+            const username = localStorage.getItem('username');
+            greetingDiv.textContent = username ? `Hello ${username}` : 'Hello';
+
+            try {
+                // Verify user
+                const userResponse = await fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!userResponse.ok) {
+                    errorDiv.textContent = 'User not found or invalid';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                // Fetch app submissions
+                const submissionsResponse = await fetch('http://127.0.0.1:8000/api/app_submissions/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!submissionsResponse.ok) {
+                    errorDiv.textContent = 'Failed to fetch app submissions';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                const submissions = await submissionsResponse.json();
+                loadingDiv.style.display = 'none';
+
+                if (submissions.length === 0) {
+                    submissionsDiv.innerHTML = '<p class="no-submissions">No submissions found.</p>';
+                    return;
+                }
+
+                // Display submissions
+                submissions.forEach(submission => {
+                    const submissionDiv = document.createElement('div');
+                    submissionDiv.className = 'submission';
+                    submissionDiv.innerHTML = `
+                        <div class="submission-main">
+                            <div class="submission-left">
+                                ${submission.app_image ? `<img src="${submission.app_image}" alt="${submission.app_name || 'App Image'}">` : '<img src="https://via.placeholder.com/48?text=📱" alt="App Image">'}
+                                <div class="submission-details">
+                                    <h3>${submission.app_name || 'Unknown App'}</h3>
+                                    <a href="#" class="view-details" data-submission-id="${submission.id || ''}">View in Detail</a>
+                                </div>
+                            </div>
+                            <div class="submission-right">
+                                <span>${submission.points || '0'} Points</span>
+                            </div>
+                        </div>
+                        <div class="submission-details-dropdown" id="details-${submission.id || ''}">
+                            <p><strong>Category:</strong> ${submission.app_category || 'N/A'}</p>
+                            <p><strong>Subcategory:</strong> ${submission.subcategory || 'N/A'}</p>
+                            <p><strong>Link:</strong> <a href="${submission.app_link || '#'}" target="_blank">${submission.app_link || 'No link available'}</a></p>
+                            <div class="screenshot-upload">
+                                <div class="upload-container" id="uploadContainer-${submission.id || ''}">
+                                    <img src="/static/images/default_image.jpeg" class="upload-image" id="uploadImage-${submission.id || ''}" alt="Upload Screenshots">
+                                    <div class="upload-text">Upload Screenshots to complete the TASK</div>
+                                    <button class="upload-button" id="uploadButton-${submission.id || ''}" disabled>Upload</button>
+                                    <input type="file" id="screenshotInput-${submission.id || ''}" accept="image/*" multiple style="display: none;">
+                                    <div class="screenshots-grid" id="screenshotsGrid-${submission.id || ''}"></div>
+                                    <div class="screenshot-error" id="screenshotError-${submission.id || ''}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    submissionsDiv.appendChild(submissionDiv);
+
+                    // Add event listener for the "View in Detail" link
+                    const viewDetailsLink = submissionDiv.querySelector('.view-details');
+                    viewDetailsLink.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        const dropdown = document.getElementById(`details-${submission.id || ''}`);
+                        const isVisible = dropdown.classList.contains('show');
+                        // Close all other dropdowns
+                        document.querySelectorAll('.submission-details-dropdown.show').forEach(dd => {
+                            dd.classList.remove('show');
+                        });
+                        // Toggle the current dropdown
+                        if (!isVisible) {
+                            dropdown.classList.add('show');
+                        }
+                    });
+
+                    // Add event listeners for the upload image and button
+                    const uploadImage = submissionDiv.querySelector(`#uploadImage-${submission.id || ''}`);
+                    const uploadButton = submissionDiv.querySelector(`#uploadButton-${submission.id || ''}`);
+                    const screenshotInput = submissionDiv.querySelector(`#screenshotInput-${submission.id || ''}`);
+                    const screenshotsGrid = submissionDiv.querySelector(`#screenshotsGrid-${submission.id || ''}`);
+                    const screenshotError = submissionDiv.querySelector(`#screenshotError-${submission.id || ''}`);
+                    const uploadContainer = submissionDiv.querySelector(`#uploadContainer-${submission.id || ''}`);
+
+                    // Store selected files for submission
+                    let selectedFiles = [];
+
+                    // Trigger file input when clicking the image
+                    uploadImage.addEventListener('click', () => {
+                        screenshotInput.click();
+                    });
+
+                    // Add drag-and-drop functionality
+                    uploadContainer.addEventListener('dragover', (event) => {
+                        event.preventDefault();
+                        uploadContainer.classList.add('dragover');
+                    });
+
+                    uploadContainer.addEventListener('dragleave', () => {
+                        uploadContainer.classList.remove('dragover');
+                    });
+
+                    uploadContainer.addEventListener('drop', (event) => {
+                        event.preventDefault();
+                        uploadContainer.classList.remove('dragover');
+                        const files = event.dataTransfer.files;
+                        handleFiles(files);
+                    });
+
+                    // Handle file input change for image uploads (both click and drop)
+                    const handleFiles = (files) => {
+                        if (files && files.length > 0) {
+                            screenshotError.style.display = 'none';
+                            // Add new files to the selectedFiles array
+                            selectedFiles = [...selectedFiles, ...Array.from(files)];
+                            Array.from(files).forEach(file => {
+                                // Validate file type
+                                if (!file.type.startsWith('image/')) {
+                                    screenshotError.textContent = 'Please upload valid image files only.';
+                                    screenshotError.style.display = 'block';
+                                    return;
+                                }
+                                // Validate file size (max 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                    screenshotError.textContent = 'Image size exceeds 5MB limit.';
+                                    screenshotError.style.display = 'block';
+                                    return;
+                                }
+                                const screenshotContainer = document.createElement('div');
+                                screenshotContainer.className = 'screenshot-container';
+                                const img = document.createElement('img');
+                                img.className = 'screenshot-preview';
+                                img.src = URL.createObjectURL(file);
+                                const deleteButton = document.createElement('div');
+                                deleteButton.className = 'delete-button';
+                                deleteButton.textContent = '✕';
+                                deleteButton.addEventListener('click', () => {
+                                    // Remove the file from selectedFiles
+                                    const index = selectedFiles.indexOf(file);
+                                    if (index > -1) {
+                                        selectedFiles.splice(index, 1);
+                                    }
+                                    screenshotContainer.remove();
+                                    // Reset input to allow re-uploading the same file
+                                    screenshotInput.value = '';
+                                    // Disable the upload button if no files are selected
+                                    uploadButton.disabled = selectedFiles.length === 0;
+                                });
+                                screenshotContainer.appendChild(img);
+                                screenshotContainer.appendChild(deleteButton);
+                                screenshotsGrid.appendChild(screenshotContainer);
+                            });
+                            // Enable the upload button since files are selected
+                            uploadButton.disabled = false;
+                        }
+                    };
+
+                    screenshotInput.addEventListener('change', (event) => {
+                        handleFiles(event.target.files);
+                    });
+
+                    // Handle submission when clicking the upload button
+                    uploadButton.addEventListener('click', async () => {
+                        if (selectedFiles.length === 0) return; // Do nothing if no files are selected
+
+                        uploadButton.disabled = true; // Disable button during upload
+                        screenshotError.style.display = 'none';
+
+                        // Get CSRF token
+                        const csrftoken = getCookie('csrftoken');
+                        if (!csrftoken) {
+                            screenshotError.textContent = 'CSRF token not found. Please refresh the page.';
+                            screenshotError.style.display = 'block';
+                            uploadButton.disabled = false;
+                            return;
+                        }
+
+                        let hasError = false;
+
+                        // Upload each file individually
+                        for (const file of selectedFiles) {
+                            const formData = new FormData();
+                            formData.append('app_submission', submission.id);
+                            formData.append('app_screenshot', file);
+
+                            try {
+                                const response = await fetch('http://127.0.0.1:8000/api/screenshot-submissions/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRFToken': csrftoken,
+                                    },
+                                    body: formData,
+                                    credentials: 'include',
+                                });
+
+                                if (!response.ok) {
+                                    const errorData = await response.json();
+                                    throw new Error(errorData.detail || 'Failed to upload screenshot');
+                                }
+
+                                // Show success message for each successful upload
+                                screenshotError.textContent = 'Image submitted successfully!';
+                                screenshotError.style.color = '#10b981';
+                                screenshotError.style.display = 'block';
+                            } catch (error) {
+                                screenshotError.textContent = `Error uploading screenshot: ${error.message}`;
+                                screenshotError.style.display = 'block';
+                                hasError = true;
+                                break;
+                            }
+                        }
+
+                        if (!hasError) {
+                            // Clear the preview and reset state only if all uploads succeed
+                            screenshotsGrid.innerHTML = '';
+                            selectedFiles = [];
+                            screenshotInput.value = '';
+                            setTimeout(() => {
+                                screenshotError.style.display = 'none';
+                                screenshotError.style.color = '#dc2626';
+                            }, 3000);
+                        }
+
+                        uploadButton.disabled = selectedFiles.length > 0;
+                    });
+                });
+
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred: ' + error.message;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        });
+    </script>
+  </body>
+</html>

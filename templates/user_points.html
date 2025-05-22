@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 12px 20px;
+            margin: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+        .sidebar a.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        .sidebar a:hover .icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+        .sidebar a.active .icon {
+            color: #ffffff;
+        }
+        .container {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 12px 24px;
+            background: transparent;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 0;
+            display: inline-block;
+        }
+        .typing {
+            position: relative;
+            overflow: hidden;
+        }
+        .typing::after {
+            content: '|';
+            position: absolute;
+            right: -10px;
+            color: #3b82f6;
+            animation: blink 0.7s step-end infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .username {
+            display: inline;
+        }
+        .content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #fee2e2;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .loading::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #6b7280;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .points-table {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        .points-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .points-table th,
+        .points-table td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 14px;
+            color: #1f2937;
+        }
+        .points-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        .points-table td {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .points-table tr:last-child td {
+            border-bottom: none;
+        }
+        .points-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        .points-table tr:hover {
+            background: #f1f5f9;
+        }
+        .points-table img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+        .points-total {
+            margin-top: 24px;
+            padding: 16px;
+            background: #d1fae5;
+            color: #065f46;
+            border-radius: 8px;
+            border: 1px solid #6ee7b7;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .no-points {
+            text-align: center;
+            color: #6b7280;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 24px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .home-icon::before,
+        .home-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .home-icon::before {
+            width: 16px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-bottom: none;
+            top: 3px;
+            left: 1px;
+            border-radius: 3px 3px 0 0;
+        }
+        .home-icon::after {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 8px solid currentColor;
+            top: -2px;
+            left: 0px;
+        }
+        .profile-icon::before,
+        .profile-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .profile-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 0;
+            left: 4px;
+        }
+        .profile-icon::after {
+            width: 16px;
+            height: 8px;
+            border: 2px solid currentColor;
+            border-radius: 6px 6px 10px 10px;
+            border-top: none;
+            top: 12px;
+            left: 1px;
+        }
+        .points-icon::before,
+        .points-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .points-icon::before {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+        }
+        .points-icon::after {
+            content: '★';
+            font-size: 10px;
+            top: 4px;
+            left: 5px;
+        }
+        .task-icon::before,
+        .task-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .task-icon::before {
+            width: 16px;
+            height: 18px;
+            border: 2px solid currentColor;
+            border-radius: 3px;
+            top: 0;
+            left: 1px;
+        }
+        .task-icon::after {
+            content: '✓';
+            font-size: 12px;
+            top: 2px;
+            left: 4px;
+        }
+        .logout-icon::before,
+        .logout-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .logout-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 3px;
+            left: 0;
+        }
+        .logout-icon::after {
+            width: 8px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 12px;
+            box-shadow: 0 -3px 0 0 currentColor, 0 3px 0 0 currentColor;
+        }
+        .admin-icon::before,
+        .admin-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .admin-icon::before {
+            width: 16px;
+            height: 16px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+        }
+        .admin-icon::after {
+            width: 10px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 4px;
+            box-shadow: 3px 3px 0 0 currentColor, -3px 3px 0 0 currentColor, 3px -3px 0 0 currentColor, -3px -3px 0 0 currentColor;
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/">
+            <div class="icon home-icon"></div>
+            Home
+        </a>
+        <a href="/user_tasks/">
+            <div class="icon task-icon"></div>
+            Tasks
+        </a>
+        <a href="/user_points/" class="active">
+            <div class="icon points-icon"></div>
+            Points
+        </a>
+        <a href="/profile/">
+            <div class="icon profile-icon"></div>
+            Profile
+        </a>
+        <a href="/logout/" id="logout-link">
+            <div class="icon logout-icon"></div>
+            Logout
+        </a>
+        <a href="/custom_admin/" id="admin-link">
+            <div class="icon admin-icon"></div>
+            Admin
+        </a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1 id="greeting" class="typing"></h1>
+        </div>
+        <div class="content">
+            <div id="error" class="error"></div>
+            <div id="loading" class="loading">Loading...</div>
+            <div id="points" class="points-table"></div>
+            <div id="points-total" class="points-total"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const pointsDiv = document.getElementById('points');
+            const pointsTotalDiv = document.getElementById('points-total');
+            const greetingDiv = document.getElementById('greeting');
+            const logoutLink = document.getElementById('logout-link');
+
+            // Dynamic color array for username
+            const colors = [
+                '#3b82f6', // Blue
+                '#10b981', // Green
+                '#8b5cf6', // Purple
+                '#f59e0b', // Amber
+                '#ec4899', // Pink
+                '#14b8a6', // Teal
+            ];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+            // Typewriter effect for greeting with dynamic username color
+            const username = localStorage.getItem('username') || '';
+            const greetingText = username ? `Hello ${username}` : 'Hello';
+            const helloPart = 'Hello ';
+            const usernamePart = username;
+            let i = 0;
+            greetingDiv.innerHTML = '';
+            function typeWriter() {
+                if (i < greetingText.length) {
+                    if (i < helloPart.length) {
+                        // Type "Hello " in default color
+                        greetingDiv.innerHTML = greetingDiv.innerHTML.slice(0, -1) + greetingText.charAt(i) + '<span class="typing-cursor">|</span>';
+                    } else {
+                        // Type username in dynamic color
+                        const currentText = greetingDiv.innerHTML.replace('<span class="typing-cursor">|</span>', '');
+                        greetingDiv.innerHTML = `${currentText}<span class="username" style="color: ${randomColor}">${greetingText.charAt(i)}</span><span class="typing-cursor">|</span>`;
+                    }
+                    i++;
+                    setTimeout(typeWriter, 100);
+                } else {
+                    // Remove cursor and finalize username styling
+                    greetingDiv.innerHTML = `${helloPart}<span class="username" style="color: ${randomColor}">${usernamePart}</span>`;
+                    greetingDiv.classList.remove('typing');
+                }
+            }
+            if (greetingText) {
+                setTimeout(typeWriter, 300);
+            } else {
+                greetingDiv.innerHTML = 'Hello';
+                greetingDiv.classList.remove('typing');
+            }
+
+            // Clear local storage on logout
+            logoutLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                localStorage.removeItem('user_id');
+                localStorage.removeItem('username');
+                window.location.href = logoutLink.href;
+            });
+
+            try {
+                const userId = localStorage.getItem('user_id');
+                if (!userId) {
+                    errorDiv.textContent = 'No user ID found. Please log in again.';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                if (!username) {
+                    errorDiv.textContent = 'No username found. Please log in again.';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                // Verify user
+                const userResponse = await fetch(`http://127.0.0.1:8000/api/users/${userId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!userResponse.ok) {
+                    errorDiv.textContent = 'User not found or session invalid. Please log in again.';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                // Fetch tasks
+                const tasksResponse = await fetch('http://127.0.0.1:8000/api/tasks/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!tasksResponse.ok) {
+                    errorDiv.textContent = 'Failed to fetch points data. Please try again later.';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    return;
+                }
+
+                const tasks = await tasksResponse.json();
+                loadingDiv.style.display = 'none';
+
+                // Filter tasks by username
+                const userTasks = tasks.filter(task => task.username === username);
+
+                if (userTasks.length === 0) {
+                    pointsDiv.innerHTML = '<p class="no-points">No points earned yet.</p>';
+                    pointsTotalDiv.style.display = 'none';
+                    return;
+                }
+
+                // Calculate total points
+                const totalPoints = userTasks.reduce((sum, task) => sum + (parseInt(task.points) || 0), 0);
+
+                // Display tasks in a table
+                let tableHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>App</th>
+                                <th>App Name</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                userTasks.forEach(task => {
+                    tableHTML += `
+                        <tr>
+                            <td><img src="${task.app_image || 'https://via.placeholder.com/32?text=📋'}" alt="${task.app_name || 'Unknown App'}"></td>
+                            <td>${task.app_name || 'Unknown App'}</td>
+                            <td>${task.points || 0}</td>
+                        </tr>
+                    `;
+                });
+                tableHTML += '</tbody></table>';
+                pointsDiv.innerHTML = tableHTML;
+
+                // Display total points
+                pointsTotalDiv.textContent = `Total Points: ${totalPoints}`;
+                pointsTotalDiv.style.display = 'block';
+
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred: ' + error.message;
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

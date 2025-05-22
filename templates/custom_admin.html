@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        .sidebar a, .sidebar button {
+            display: flex;
+            align-items: center;
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 12px 20px;
+            margin: 8px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .sidebar a:hover, .sidebar button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+        .sidebar a.active {
+            background: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        .sidebar a:hover .icon, .sidebar button:hover .icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+        .sidebar a.active .icon {
+            color: #ffffff;
+        }
+        .container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .form-wrapper {
+            background-color: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .form-container {
+            display: flex;
+            width: 100%;
+            gap: 24px;
+        }
+        .left-column, .right-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .form-group {
+            margin-bottom: 24px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        label {
+            display: none;
+        }
+        input[type="text"],
+        input[type="url"],
+        input[type="number"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            transition: border-color 0.2s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .image-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+        }
+        #imagePreview {
+            width: 100%;
+            height: 100_operational
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+            border: 1px solid #d1d5db;
+        }
+        .image-container::after {
+            content: '\270E';
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .submit-button {
+            width: 100%;
+            max-width: 200px;
+            padding: 12px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin: 24px auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .submit-button:hover {
+            background-color: #1d4ed8;
+        }
+        .submit-button.loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        .submit-button.loading span {
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #dc2626;
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .login-container {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+        }
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 300px;
+        }
+        .notification {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .notification.success {
+            background-color: #22c55e;
+        }
+        .notification.error {
+            background-color: #dc2626;
+        }
+        .notification .close-btn {
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .home-icon::before,
+        .home-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .home-icon::before {
+            width: 16px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-bottom: none;
+            top: 3px;
+            left: 1px;
+            border-radius: 3px 3px 0 0;
+        }
+        .home-icon::after {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 8px solid currentColor;
+            top: -2px;
+            left: 0px;
+        }
+        .logout-icon::before,
+        .logout-icon::after {
+            content: '';
+            position: absolute;
+            display: block;
+        }
+        .logout-icon::before {
+            width: 10px;
+            height: 10px;
+            border: 2px solid currentColor;
+            border-radius: 50%;
+            top: 3px;
+            left: 0;
+        }
+        .logout-icon::after {
+            width: 8px;
+            height: 2px;
+            background: currentColor;
+            top: 8px;
+            left: 12px;
+            box-shadow: 0 -3px 0 0 currentColor, 0 3px 0 0 currentColor;
+        }
+        @media (max-width: 600px) {
+            .form-container {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .form-wrapper {
+                padding: 24px;
+            }
+            .image-container {
+                width: 80px;
+                height: 80px;
+            }
+            .sidebar {
+                width: 60px;
+            }
+            .sidebar a, .sidebar button {
+                font-size: 12px;
+                padding: 10px;
+            }
+            .icon {
+                margin-right: 8px;
+            }
+            .notification-container {
+                width: 90%;
+                right: 5%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="/" class="active">
+            <div class="icon home-icon"></div>
+            Home
+        </a>
+        <button onclick="logout()">
+            <div class="icon logout-icon"></div>
+            Logout
+        </button>
+    </div>
+    <div class="notification-container" id="notificationContainer"></div>
+    <div class="container">
+        <div class="form-wrapper">
+            <h1>Admin Login</h1>
+            <div class="error-message" id="errorMessage">Administrator access required to submit applications.</div>
+            <div class="login-container" id="loginContainer">
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <input type="email" id="loginEmail" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="loginPassword" name="password" placeholder="Password" required>
+                    </div>
+                    <button class="submit-button" type="submit"><span>Verify Admin Access</span></button>
+                </form>
+            </div>
+            <form id="appForm" onsubmit="handleSubmit(event)" style="display: none;">
+                <div class="form-group">
+                    <input type="file" id="appImage" name="app_image" accept="image/*" onchange="previewImage(event)">
+                    <div class="image-container" onclick="document.getElementById('appImage').click()">
+                        <img id="imagePreview" src="/static/images/default_image.jpeg" alt="Image Preview">
+                    </div>
+                </div>
+                <div class="form-container">
+                    <div class="left-column">
+                        <div class="form-group">
+                            <input type="text" id="appName" name="app_name" placeholder="Application Name" required>
+                        </div>
+                        <div class="form-group">
+                            <select id="appCategory" name="app_category" onchange="updateSubcategories()" required>
+                                <option value="">Select Application Category</option>
+                                <option value="Productivity">Productivity</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Education">Education</option>
+                                <option value="Social">Social</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="right-column">
+                        <div class="form-group">
+                            <input type="url" id="appLink" name="app_link" placeholder="Application URL" required>
+                        </div>
+                        <div class="form-group">
+                            <select id="subCategory" name="subcategory" required>
+                                <option value="">Select Subcategory</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="appPoints" name="points" min="0" placeholder="Points" required>
+                </div>
+                <button class="submit-button" type="submit"><span>Submit Application</span></button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function checkAdminStatus() {
+            const adminData = JSON.parse(localStorage.getItem('adminData')) || {};
+            const isAdmin = adminData.isAdmin || false;
+            const adminEmail = adminData.email || '';
+            const adminPassword = adminData.password || '';
+
+            if (isAdmin) {
+                document.getElementById('appForm').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'none';
+            } else {
+                document.getElementById('appForm').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('loginContainer').style.display = 'block';
+            }
+
+            return { isAdmin, adminEmail, adminPassword };
+        }
+
+        function showNotification(message, type) {
+            const notificationContainer = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <span class="close-btn">×</span>
+            `;
+            notificationContainer.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            const closeBtn = notification.querySelector('.close-btn');
+            closeBtn.onclick = () => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            };
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const button = document.querySelector('#loginForm .submit-button');
+            button.classList.add('loading');
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('http://localhost:8000/api/user-status/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.is_staff !== undefined) {
+                        localStorage.setItem('adminData', JSON.stringify({
+                            email,
+                            password,
+                            isAdmin: data.is_staff
+                        }));
+                        showNotification('Login successful!', 'success');
+                        checkAdminStatus();
+                    } else {
+                        showNotification('Login failed: Invalid response from server.', 'error');
+                        localStorage.removeItem('adminData');
+                        checkAdminStatus();
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showNotification('Login failed: ' + (errorData.detail || errorData.email || errorData.password || JSON.stringify(errorData)), 'error');
+                    localStorage.removeItem('adminData');
+                    checkAdminStatus();
+                }
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+                localStorage.removeItem('adminData');
+                checkAdminStatus();
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminData');
+            showNotification('Logged out successfully', 'success');
+            checkAdminStatus();
+        }
+
+        function previewImage(event) {
+            const imagePreview = document.getElementById('imagePreview');
+            const file = event.target.files[0];
+            if (file) {
+                imagePreview.src = URL.createObjectURL(file);
+            } else {
+                imagePreview.src = '/static/images/default_image.jpeg';
+            }
+        }
+
+        function updateSubcategories() {
+            const category = document.getElementById('appCategory').value;
+            const subCategorySelect = document.getElementById('subCategory');
+            subCategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+
+            const subCategories = {
+                Productivity: ['Task Management', 'Note Taking', 'Time Tracking', 'Project Management', 'Collaboration Tools', 'Calendar Apps', 'Document Editing', 'Workflow Automation'],
+                Entertainment: ['Streaming', 'Gaming', 'Music', 'Video Editing', 'Live Events', 'Podcasts', 'Virtual Reality', 'Photo Editing'],
+                Education: ['Learning Platforms', 'Language Learning', 'Tutoring', 'Online Courses', 'Study Tools', 'Educational Games', 'Research Tools', 'Skill Development'],
+                Social: ['Messaging', 'Networking', 'Community', 'Social Media', 'Event Planning', 'Dating Apps', 'Forums', 'Content Sharing']
+            };
+
+            if (category && subCategories[category]) {
+                subCategories[category].forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub;
+                    option.textContent = sub;
+                    subCategorySelect.appendChild(option);
+                });
+            } else {
+                showNotification('Please select a valid category.', 'error');
+            }
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const button = document.querySelector('#appForm .submit-button');
+            button.classList.add('loading');
+            const { isAdmin, adminEmail, adminPassword } = checkAdminStatus();
+
+            if (!isAdmin) {
+                showNotification('You must be an admin to submit this form.', 'error');
+                button.classList.remove('loading');
+                return;
+            }
+
+            const form = document.getElementById('appForm');
+            const formData = new FormData(form);
+            formData.append('email', adminEmail);
+            formData.append('password', adminPassword);
+
+            try {
+                const response = await fetch('http://localhost:8000/api/app_submissions/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: formData
+                });
+                if (response.ok) {
+                    showNotification('Application submitted successfully!', 'success');
+                    form.reset();
+                    document.getElementById('imagePreview').src = '/static/images/default_image.jpeg';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    const errorData = await response.json();
+                    showNotification('Submission failed: ' + (errorData.detail || JSON.stringify(errorData)), 'error');
+                }
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        window.onload = () => {
+            checkAdminStatus();
+        };
+    </script>
+</body>
+</html>
